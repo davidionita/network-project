@@ -1,3 +1,7 @@
+package client;
+
+import server.ServerConnectionHandler;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -22,8 +26,8 @@ public class ChatClient {
         socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
 
-        ServerListener listener = new ServerListener();
-        Thread t = new Thread(listener);
+        ServerConnectionHandler handler = new ServerConnectionHandler(socketIn);
+        Thread t = new Thread(handler);
         t.start();
 
         System.out.print("Chat session has started - enter a user name:  ");
@@ -41,23 +45,5 @@ public class ChatClient {
         userInput.close();
         socketIn.close();
         socket.close();
-    }
-
-    static class ServerListener implements Runnable {
-        @Override
-        public void run() {
-            try {
-                String incoming = "";
-
-                while ((incoming = socketIn.readLine()) != null) {
-                    // handle different headers (WELCOME, CHAT, EXIT
-                    System.out.println(incoming);
-                }
-            } catch (Exception ex) {
-                System.out.println("Exception caught in listener " + ex);
-            } finally {
-                System.out.println("Client Listener exiting");
-            }
-        }
     }
 }
