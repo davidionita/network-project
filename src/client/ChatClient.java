@@ -38,7 +38,7 @@ public class ChatClient {
         Thread t = new Thread(handler);
         t.start();
 
-        logger.log("Connected to server!", LogType.SUCCESS);
+        logger.log("Connected to server!", LogType.CONNECTED);
         logger.log("Please enter a username: ", LogType.PROMPT);
         String name = userInput.nextLine().trim();
         socketOut.println(name);

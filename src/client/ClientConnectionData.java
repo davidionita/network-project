@@ -10,7 +10,7 @@ public class ClientConnectionData {
     private BufferedReader in;
     private PrintWriter out;
     private String name;
-    private String userName;
+    private String username;
 
     public ClientConnectionData(Socket socket, BufferedReader in, PrintWriter out, String name) {
         this.socket = socket;
@@ -51,11 +51,11 @@ public class ClientConnectionData {
         this.name = name;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUsername(String username) {
+        this.username = username;
     }
 }
