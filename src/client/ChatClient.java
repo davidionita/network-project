@@ -3,7 +3,8 @@ package client;
 import logs.FileLogger;
 import logs.LogType;
 import logs.Logger;
-import server.ServerConnectionHandler;
+import protocol.Packet;
+import protocol.ProtocolType;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -18,7 +19,22 @@ public class ChatClient {
     private static PrintWriter socketOut;
 
     private static Logger logger = new FileLogger();
-    private static String EXIT_COMMAND = "/quit";
+    private static String EXIT_COMMAND = "QUIT";
+
+    // only allow alpha numeric username
+    private static boolean isValidUsername(String username) {
+        return username != null && username.matches("^[a-zA-Z0-9]*$");
+    }
+
+    private static String getUsername(Scanner userInput) {
+        String username = userInput.nextLine();
+
+        while(!isValidUsername(username)) {
+            logger.log("Username's must be alphanumeric.", LogType.ERROR);
+            username = userInput.nextLine();
+        }
+        return username;
+    }
 
     public static void main(String[] args) throws Exception {
         Scanner userInput = new Scanner(System.in);
@@ -33,30 +49,57 @@ public class ChatClient {
         socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         socketOut = new PrintWriter(socket.getOutputStream(), true);
 
-        // handle socket on different thread
-        ServerConnectionHandler handler = new ServerConnectionHandler(socketIn);
-        Thread t = new Thread(handler);
+        /*
+         * Connect with a valid username
+         */
+
+        logger.log("Reached server!", LogType.CONNECTED);
+        logger.log("Please enter a username: ", LogType.PROMPT);
+
+        while(true) {
+            String username = getUsername(userInput);
+            socketOut.println(new Packet(ProtocolType.CLIENT_USERNAME, username));
+
+            String response = socketIn.readLine();
+            System.out.println(response);
+
+            if (response.startsWith(ProtocolType.SERVER_USERNAME_VALID.prefix)) {
+                logger.log("Now connected as " + username + "!\n", LogType.CONNECTED);
+                break;
+            } else {
+                logger.log("Username already taken. Please enter another username.");
+            }
+        }
+
+        /*
+         * Handle server messages on another thread
+         */
+        ServerConnectionHandler serverHandler = new ServerConnectionHandler(socketIn, logger);
+        Thread t = new Thread(serverHandler);
         t.start();
 
-        logger.log("Connected to server!", LogType.CONNECTED);
-        logger.log("Please enter a username: ", LogType.PROMPT);
-        String name = userInput.nextLine().trim();
-        socketOut.println(name);
+        /*
+         * Handle commands on main thread
+         */
 
-        String line = userInput.nextLine().trim();
-        while(!line.toLowerCase().startsWith(EXIT_COMMAND)) {
-            String msg = String.format("CHAT %s", line);
-            socketOut.println(msg);
-            line = userInput.nextLine().trim();
+        String input = userInput.nextLine();
+
+        while(!input.startsWith(EXIT_COMMAND)) {
+            Packet packet = new Packet(ProtocolType.CLIENT_MESSAGE, input);
+
+            socketOut.println(packet);
+            input = userInput.nextLine();
         }
+
 
         /*
          * Close all streams
          */
-        socketOut.println("QUIT");
+        logger.log(EXIT_COMMAND);
         socketOut.close();
         userInput.close();
         socketIn.close();
         socket.close();
+        logger.close();
     }
 }

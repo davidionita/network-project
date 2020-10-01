@@ -1,5 +1,6 @@
-package client;
+package server;
 
+import client.ClientConnectionData;
 import protocol.Packet;
 import protocol.ProtocolType;
 
@@ -42,12 +43,14 @@ public class ClientConnectionHandler implements Runnable {
     private boolean isUsernameAvailable(String username) {
         synchronized (clientList) {
             for(ClientConnectionData client : clientList) {
+                System.out.println("input username " + username);
+                System.out.println(client.getUsername());
                 if (client.getUsername().equalsIgnoreCase(username)) {
                     return false;
                 }
             }
-            return true;
         }
+        return true;
     }
 
     @Override
@@ -55,20 +58,36 @@ public class ClientConnectionHandler implements Runnable {
         try {
             PrintWriter clientOut = client.getOut();
             BufferedReader clientIn = client.getIn();
+            String input = clientIn.readLine();
 
             // 1. get valid username
-            String username = clientIn.readLine();
+            String username = new Packet(input).info;
             while(!isUsernameAvailable(username)) {
-                clientOut.println(new Packet(ProtocolType.SERVER_NEW_USERNAME));
-                username = clientIn.readLine();
+                clientOut.println(new Packet(ProtocolType.SERVER_USERNAME_INVALID));
+                username = new Packet(clientIn.readLine()).info;
             }
+            clientOut.println(new Packet(ProtocolType.SERVER_USERNAME_VALID));
             client.setUsername(username);
             synchronized (clientList) {
                 clientList.add(client);
             }
+
             broadcastPacket(new Packet(ProtocolType.SERVER_NEW_JOIN, client.getUsername()));
 
             // 2. setup packet listening / routing
+            String clientInput;
+
+            while((clientInput = clientIn.readLine()) != null) {
+                Packet receivedPacket = new Packet(clientInput);
+
+                if(receivedPacket.type == ProtocolType.CLIENT_MESSAGE) {
+                    String message = receivedPacket.info;
+                    String packetInfo = String.format("[%s]%s", client.getUsername(), message);
+
+                    broadcastPacket(new Packet(ProtocolType.SERVER_ROUTED_MESSAGE, packetInfo));
+                }
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -80,7 +99,9 @@ public class ClientConnectionHandler implements Runnable {
 
             try {
                 client.getSocket().close();
-            } catch (IOException ex) {}
+            } catch (IOException e) {
+
+            }
         }
     }
 

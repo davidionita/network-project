@@ -2,7 +2,7 @@ package logs;
 
 public enum LogType {
 
-    CONNECTED("New Connection >"),
+    CONNECTED("Connected >"),
     INFO("Info >"),
     ERROR("Error >"),
     PROMPT("Prompt >"),
