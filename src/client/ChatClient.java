@@ -17,12 +17,12 @@ public class ChatClient {
         Scanner userInput = new Scanner(System.in);
 
         System.out.println("What's the server IP? ");
-        String serverip = userInput.nextLine();
+        String serverIp = userInput.nextLine();
         System.out.println("What's the server port? ");
         int port = userInput.nextInt();
         userInput.nextLine();
 
-        socket = new Socket(serverip, port);
+        socket = new Socket(serverIp, port);
         socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
 
@@ -40,6 +40,10 @@ public class ChatClient {
             out.println(msg);
             line = userInput.nextLine().trim();
         }
+
+        /*
+         * Close all streams
+         */
         out.println("QUIT");
         out.close();
         userInput.close();

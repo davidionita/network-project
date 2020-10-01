@@ -40,7 +40,6 @@ public class ChatServer {
 
                     ClientConnectionData client = new ClientConnectionData(socket, in, out, name);
                     clientList.add(client);
-                    System.out.println("Added client " + name);
 
                     //handle client business in another thread
                     pool.execute(new ClientConnectionHandler(clientList, client));
@@ -49,8 +48,6 @@ public class ChatServer {
                 }
             }
         }
-
-
     }
 
 }
