@@ -1,5 +1,8 @@
 package client;
 
+import logs.FileLogger;
+import logs.LogType;
+import logs.Logger;
 import server.ServerConnectionHandler;
 
 import java.io.BufferedReader;
@@ -9,43 +12,49 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class ChatClient {
-    public static Socket socket;
+
+    private static Socket socket;
     private static BufferedReader socketIn;
-    private static PrintWriter out;
+    private static PrintWriter socketOut;
+
+    private static Logger logger = new FileLogger();
+    private static String EXIT_COMMAND = "/quit";
 
     public static void main(String[] args) throws Exception {
         Scanner userInput = new Scanner(System.in);
 
-        System.out.println("What's the server IP? ");
+        logger.log("What's the server IP?", LogType.PROMPT);
         String serverIp = userInput.nextLine();
-        System.out.println("What's the server port? ");
+        logger.log("What's the server port?", LogType.PROMPT);
         int port = userInput.nextInt();
         userInput.nextLine();
 
         socket = new Socket(serverIp, port);
         socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        out = new PrintWriter(socket.getOutputStream(), true);
+        socketOut = new PrintWriter(socket.getOutputStream(), true);
 
+        // handle socket on different thread
         ServerConnectionHandler handler = new ServerConnectionHandler(socketIn);
         Thread t = new Thread(handler);
         t.start();
 
-        System.out.print("Chat session has started - enter a user name:  ");
+        logger.log("Connected to server!", LogType.SUCCESS);
+        logger.log("Please enter a username: ", LogType.PROMPT);
         String name = userInput.nextLine().trim();
-        out.println(name);
+        socketOut.println(name);
 
         String line = userInput.nextLine().trim();
-        while(!line.toLowerCase().startsWith("/quit")) {
+        while(!line.toLowerCase().startsWith(EXIT_COMMAND)) {
             String msg = String.format("CHAT %s", line);
-            out.println(msg);
+            socketOut.println(msg);
             line = userInput.nextLine().trim();
         }
 
         /*
          * Close all streams
          */
-        out.println("QUIT");
-        out.close();
+        socketOut.println("QUIT");
+        socketOut.close();
         userInput.close();
         socketIn.close();
         socket.close();

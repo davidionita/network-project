@@ -4,41 +4,64 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class FileLogger implements Logger {
 
     private FileWriter fileWriter;
 
-    public FileLogger(String file_name) {
-        String file_path = String.format("/logs/%s.txt", file_name);
+    public FileLogger() {
+        String file_name = new SimpleDateFormat("yyyy-dd-M--HH-mm-ss").format(new Date());
+        createFile(file_name);
+    }
+
+    private void createFile(String file_name) {
+        String file_path = String.format("logs/%s.txt", file_name);
         File logFile = new File(file_path);
 
         try {
+            // create parent folder if not exists
+            if(!logFile.getParentFile().exists())
+                logFile.getParentFile().mkdirs();
+
             if(!logFile.exists())
                 logFile.createNewFile();
 
             fileWriter = new FileWriter(logFile);
         } catch (IOException e) {
-            System.out.println("> Error: Could not create new file for FileLogger.");
-            System.out.println("> Error: " + e.getCause());
+            System.out.println(LogType.ERROR.format("Could not create new file for FileLogger."));
+            System.out.println(LogType.ERROR.format(e.getMessage()));
         }
     }
 
     @Override
-    public void log(String message, boolean isError) {
-        String formatted_message = isError ? String.format("Error > %s", message) : String.format("Info > %s", message);
-        System.out.println(formatted_message);
+    public void log(String message, LogType type) {
+        // format and print message to console
+        message = type.format(message);
+        System.out.println(message);
 
         try {
-            if(fileWriter != null)
-                fileWriter.write(formatted_message);
+            if(fileWriter != null) {
+                fileWriter.write(message + "\n");
+                fileWriter.flush();
+            }
         } catch (IOException e) {
-            System.out.println("> Error: Could not write to log file for FileLogger.");
-            System.out.println("> Error: " + e.getCause());
+            System.out.println(LogType.ERROR.format("Could not write to log file for FileLogger > " + e.getMessage()));
         }
     }
 
     @Override
     public void log(String message) {
-        this.log(message, false);
+        this.log(message, LogType.INFO);
+    }
+
+    @Override
+    public void close() {
+        try {
+            fileWriter.close();
+        } catch (IOException e) {
+            System.out.println(LogType.ERROR.format("Could not close file writer for FileLogger > " + e.getMessage()));
+        }
     }
 }
