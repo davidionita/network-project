@@ -30,25 +30,33 @@ public class FileLogger implements Logger {
 
             fileWriter = new FileWriter(logFile);
         } catch (IOException e) {
-            System.out.println(LogType.ERROR.format("Could not create new file for FileLogger."));
-            System.out.println(LogType.ERROR.format(e.getMessage()));
+            System.out.println("Could not create new file for FileLogger.");
+            System.out.println(e.getMessage());
         }
     }
 
     @Override
-    public void log(String message, LogType type) {
+    public void log(String message, LogType type, boolean newLine) {
         // format and print message to console
-        message = type.format(message);
-        System.out.println(message);
+        if(type != LogType.USER_INPUT && type != LogType.PACKET) {
+            System.out.printf(message + (newLine ? "\n" : ""));
+        }
 
         try {
             if(fileWriter != null) {
-                fileWriter.write(message + "\n");
+                fileWriter.write(type.format(message));
+                if(newLine)
+                    fileWriter.write("\n");
                 fileWriter.flush();
             }
         } catch (IOException e) {
             System.out.println(LogType.ERROR.format("Could not write to log file for FileLogger > " + e.getMessage()));
         }
+    }
+
+    @Override
+    public void log(String message, LogType type) {
+        log(message, type, true);
     }
 
     @Override

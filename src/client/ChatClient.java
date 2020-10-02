@@ -3,8 +3,8 @@ package client;
 import logs.FileLogger;
 import logs.LogType;
 import logs.Logger;
-import protocol.Packet;
-import protocol.ProtocolType;
+import packets.Packet;
+import packets.PacketType;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -28,10 +28,12 @@ public class ChatClient {
 
     private static String getUsername(Scanner userInput) {
         String username = userInput.nextLine();
+        logger.log(username, LogType.USER_INPUT);
 
         while(!isValidUsername(username)) {
             logger.log("Username's must be alphanumeric.", LogType.ERROR);
             username = userInput.nextLine();
+            logger.log(username, LogType.USER_INPUT);
         }
         return username;
     }
@@ -39,10 +41,18 @@ public class ChatClient {
     public static void main(String[] args) throws Exception {
         Scanner userInput = new Scanner(System.in);
 
-        logger.log("What's the server IP?", LogType.PROMPT);
+        /*
+         * Connect to server
+         */
+
+        logger.log("What's the server IP? ", LogType.PROMPT);
         String serverIp = userInput.nextLine();
-        logger.log("What's the server port?", LogType.PROMPT);
+        logger.log(serverIp, LogType.USER_INPUT);
+
+        logger.log("What's the server port? ", LogType.PROMPT);
         int port = userInput.nextInt();
+        logger.log(String.valueOf(port), LogType.USER_INPUT);
+
         userInput.nextLine();
 
         socket = new Socket(serverIp, port);
@@ -50,7 +60,7 @@ public class ChatClient {
         socketOut = new PrintWriter(socket.getOutputStream(), true);
 
         /*
-         * Connect with a valid username
+         * Send a valid username
          */
 
         logger.log("Reached server!", LogType.CONNECTED);
@@ -58,16 +68,16 @@ public class ChatClient {
 
         while(true) {
             String username = getUsername(userInput);
-            socketOut.println(new Packet(ProtocolType.CLIENT_USERNAME, username));
+            socketOut.println(new Packet(PacketType.CLIENT_USERNAME, username));
 
             String response = socketIn.readLine();
             System.out.println(response);
 
-            if (response.startsWith(ProtocolType.SERVER_USERNAME_VALID.prefix)) {
-                logger.log("Now connected as " + username + "!\n", LogType.CONNECTED);
+            if (response.startsWith(PacketType.SERVER_USERNAME_VALID.prefix)) {
+                logger.log("Now connected as " + username + "!", LogType.CONNECTED);
                 break;
             } else {
-                logger.log("Username already taken. Please enter another username.");
+                logger.log("Username already taken. Please enter another username. ", LogType.ERROR);
             }
         }
 
@@ -85,7 +95,8 @@ public class ChatClient {
         String input = userInput.nextLine();
 
         while(!input.startsWith(EXIT_COMMAND)) {
-            Packet packet = new Packet(ProtocolType.CLIENT_MESSAGE, input);
+            logger.log(input, LogType.USER_INPUT);
+            Packet packet = new Packet(PacketType.CLIENT_MESSAGE, input);
 
             socketOut.println(packet);
             input = userInput.nextLine();

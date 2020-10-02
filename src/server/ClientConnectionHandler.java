@@ -1,8 +1,8 @@
 package server;
 
 import client.ClientConnectionData;
-import protocol.Packet;
-import protocol.ProtocolType;
+import packets.Packet;
+import packets.PacketType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -63,16 +63,16 @@ public class ClientConnectionHandler implements Runnable {
             // 1. get valid username
             String username = new Packet(input).info;
             while(!isUsernameAvailable(username)) {
-                clientOut.println(new Packet(ProtocolType.SERVER_USERNAME_INVALID));
+                clientOut.println(new Packet(PacketType.SERVER_USERNAME_INVALID));
                 username = new Packet(clientIn.readLine()).info;
             }
-            clientOut.println(new Packet(ProtocolType.SERVER_USERNAME_VALID));
+            clientOut.println(new Packet(PacketType.SERVER_USERNAME_VALID));
             client.setUsername(username);
             synchronized (clientList) {
                 clientList.add(client);
             }
 
-            broadcastPacket(new Packet(ProtocolType.SERVER_NEW_JOIN, client.getUsername()));
+            broadcastPacket(new Packet(PacketType.SERVER_NEW_JOIN, client.getUsername()));
 
             // 2. setup packet listening / routing
             String clientInput;
@@ -80,16 +80,15 @@ public class ClientConnectionHandler implements Runnable {
             while((clientInput = clientIn.readLine()) != null) {
                 Packet receivedPacket = new Packet(clientInput);
 
-                if(receivedPacket.type == ProtocolType.CLIENT_MESSAGE) {
+                if(receivedPacket.type == PacketType.CLIENT_MESSAGE) {
                     String message = receivedPacket.info;
                     String packetInfo = String.format("[%s]%s", client.getUsername(), message);
 
-                    broadcastPacket(new Packet(ProtocolType.SERVER_ROUTED_MESSAGE, packetInfo));
+                    broadcastPacket(new Packet(PacketType.SERVER_ROUTED_MESSAGE, packetInfo));
                 }
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch(IOException e) {
         } finally {
             // Remove client from clientList, notify all, disconnect client
             synchronized (clientList) {

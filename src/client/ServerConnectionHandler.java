@@ -1,8 +1,9 @@
 package client;
 
+import logs.LogType;
 import logs.Logger;
-import protocol.Packet;
-import protocol.ProtocolType;
+import packets.Packet;
+import packets.PacketType;
 
 import java.io.BufferedReader;
 
@@ -13,6 +14,7 @@ public class ServerConnectionHandler implements Runnable {
 
     public ServerConnectionHandler(BufferedReader socketIn, Logger logger) {
         this.socketIn = socketIn;
+        this.logger = logger;
     }
 
     @Override
@@ -21,14 +23,15 @@ public class ServerConnectionHandler implements Runnable {
             String inputMessage;
 
             while ((inputMessage = socketIn.readLine()) != null) {
+                logger.log(inputMessage, LogType.PACKET);
                 Packet receivedPacket = new Packet(inputMessage);
 
-                if(receivedPacket.type == ProtocolType.CLIENT_MESSAGE) {
+                if(receivedPacket.type == PacketType.CLIENT_MESSAGE) {
                     System.out.println(receivedPacket.info);
                 }
             }
-        } catch (Exception ex) {
-            System.out.println("Exception caught in listener " + ex);
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             System.out.println("Client Listener exiting");
         }

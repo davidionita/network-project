@@ -6,10 +6,8 @@ public enum LogType {
     INFO("Info >"),
     ERROR("Error >"),
     PROMPT("Prompt >"),
-    INPUT("User Input >"),
-    CHAT("Chat >"),
-    PRIVATE_CHAT("PRIVATE Chat >"),
-    WELCOME("Welcome >");
+    PACKET("Received Packet >"),
+    USER_INPUT("User Input >");
 
     public final String prefix;
 

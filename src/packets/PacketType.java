@@ -1,6 +1,6 @@
-package protocol;
+package packets;
 
-public enum ProtocolType {
+public enum PacketType {
 
     // sent from server to clients
     SERVER_NEW_JOIN("new_join"),
@@ -17,7 +17,7 @@ public enum ProtocolType {
 
     public final String prefix;
 
-    ProtocolType(String prefix) {
+    PacketType(String prefix) {
         this.prefix = "[" + prefix + "]";
     }
 }

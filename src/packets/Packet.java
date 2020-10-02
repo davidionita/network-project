@@ -1,13 +1,13 @@
-package protocol;
+package packets;
 
 public class Packet {
 
-    public final ProtocolType type;
+    public final PacketType type;
     public final String info;
 
     // interprets packet from message
     public Packet(String message) {
-        for(ProtocolType type : ProtocolType.values()) {
+        for(PacketType type : PacketType.values()) {
             if(message.startsWith(type.prefix)) {
                 this.type = type;
                 this.info = message.substring(type.prefix.length());
@@ -15,16 +15,16 @@ public class Packet {
                 return;
             }
         }
-        this.type = ProtocolType.UNKNOWN;
+        this.type = PacketType.UNKNOWN;
         this.info = "";
     }
 
-    public Packet(ProtocolType type) {
+    public Packet(PacketType type) {
         this.type = type;
         this.info = "";
     }
 
-    public Packet(ProtocolType type, String info) {
+    public Packet(PacketType type, String info) {
         this.type = type;
         this.info = info;
     }
