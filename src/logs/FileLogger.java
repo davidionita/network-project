@@ -36,17 +36,15 @@ public class FileLogger implements Logger {
     }
 
     @Override
-    public void log(String message, LogType type, boolean newLine) {
+    public void log(String message, LogType type, boolean logToConsole) {
         // format and print message to console
-        if(type != LogType.USER_INPUT && type != LogType.PACKET) {
-            System.out.printf(message + (newLine ? "\n" : ""));
+        if(type != LogType.USER_INPUT && type != LogType.PACKET && logToConsole) {
+            System.out.println(message);
         }
 
         try {
             if(fileWriter != null) {
-                fileWriter.write(type.format(message));
-                if(newLine)
-                    fileWriter.write("\n");
+                fileWriter.write(type.format(message) + "\n");
                 fileWriter.flush();
             }
         } catch (IOException e) {
