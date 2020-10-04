@@ -76,6 +76,8 @@ public class ClientConnectionHandler implements Runnable {
             while((clientInput = clientIn.readLine()) != null) {
                 Packet receivedPacket = new Packet(clientInput);
 
+                // 3. filter different types of packets here
+                // TODO: Private message packets, list packets
                 if (receivedPacket.type == PacketType.CLIENT_MESSAGE) {
                     String message = receivedPacket.info;
                     String packetInfo = String.format("[%s]%s", client.getUsername(), message);
