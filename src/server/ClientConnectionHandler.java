@@ -1,13 +1,11 @@
 package server;
 
-import client.ClientConnectionData;
 import packets.Packet;
 import packets.PacketType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.SocketException;
 import java.util.List;
 
 public class ClientConnectionHandler implements Runnable {
@@ -43,8 +41,6 @@ public class ClientConnectionHandler implements Runnable {
     private boolean isUsernameAvailable(String username) {
         synchronized (clientList) {
             for(ClientConnectionData client : clientList) {
-                System.out.println("input username " + username);
-                System.out.println(client.getUsername());
                 if (client.getUsername().equalsIgnoreCase(username)) {
                     return false;
                 }
@@ -80,14 +76,13 @@ public class ClientConnectionHandler implements Runnable {
             while((clientInput = clientIn.readLine()) != null) {
                 Packet receivedPacket = new Packet(clientInput);
 
-                if(receivedPacket.type == PacketType.CLIENT_MESSAGE) {
+                if (receivedPacket.type == PacketType.CLIENT_MESSAGE) {
                     String message = receivedPacket.info;
                     String packetInfo = String.format("[%s]%s", client.getUsername(), message);
 
                     broadcastPacket(new Packet(PacketType.SERVER_ROUTED_MESSAGE, packetInfo));
                 }
             }
-
         } catch(IOException e) {
         } finally {
             // Remove client from clientList, notify all, disconnect client

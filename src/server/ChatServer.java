@@ -1,6 +1,5 @@
 package server;
 
-import client.ClientConnectionData;
 import logs.FileLogger;
 import logs.Logger;
 

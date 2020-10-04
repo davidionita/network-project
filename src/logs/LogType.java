@@ -7,7 +7,8 @@ public enum LogType {
     ERROR("Error >"),
     PROMPT("Prompt >"),
     PACKET("Received Packet >"),
-    USER_INPUT("User Input >");
+    USER_INPUT("User Input >"),
+    COMMAND_NOT_FOUND("Invalid Command >");
 
     public final String prefix;
 
