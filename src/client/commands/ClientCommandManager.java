@@ -16,6 +16,9 @@ public class ClientCommandManager {
 
     private void addCommand(ClientCommand command) {
         this.commands.put(command.getPrefix(), command);
+        for(String alias : command.getAliases()) {
+            this.commands.put(alias, command);
+        }
     }
 
     public ClientCommand getCommand(String prefix) {

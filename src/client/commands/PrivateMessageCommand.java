@@ -3,6 +3,7 @@ package client.commands;
 import client.ServerConnectionData;
 import logs.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PrivateMessageCommand implements ClientCommand {
@@ -23,5 +24,12 @@ public class PrivateMessageCommand implements ClientCommand {
     @Override
     public String getPrefix() {
         return "pm";
+    }
+
+    @Override
+    public List<String> getAliases() {
+        List<String> aliases = new ArrayList<>();
+        aliases.add("dm");
+        return aliases;
     }
 }
