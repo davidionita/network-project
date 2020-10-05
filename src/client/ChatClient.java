@@ -29,6 +29,8 @@ public class ChatClient {
     private static String EXIT_STRING = "quit";
     private static String COMMAND_PREFIX = "/";
 
+    public static final boolean DEBUG_MODE = false;
+
     // only allow alpha numeric username
     private static boolean isValidUsername(String username) {
         return username != null && username.matches("^[a-zA-Z0-9]*$");
@@ -79,7 +81,7 @@ public class ChatClient {
             socketOut.println(new Packet(PacketType.CLIENT_USERNAME, username));
 
             String response = socketIn.readLine();
-            System.out.println(response);
+            logger.log(response, LogType.PACKET_RECEIVED, DEBUG_MODE);
 
             if (response.startsWith(PacketType.SERVER_USERNAME_VALID.prefix)) {
                 logger.log("Now connected as " + username + "!", LogType.CONNECTED);

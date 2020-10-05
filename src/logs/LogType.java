@@ -3,10 +3,14 @@ package logs;
 public enum LogType {
 
     CONNECTED("Connected >"),
+    DISCONNECTED("Disconnected >"),
     INFO("Info >"),
     ERROR("Error >"),
     PROMPT("Prompt >"),
-    PACKET("Received Packet >"),
+    PACKET_RECEIVED("Received Packet >"),
+    PACKET_SENT("Sent Packet >"),
+    PACKET_ERROR("Packet Error >"),
+    CHAT("Chat >"),
     USER_INPUT("User Input >"),
     COMMAND_NOT_FOUND("Invalid Command >");
 

@@ -38,7 +38,7 @@ public class FileLogger implements Logger {
     @Override
     public void log(String message, LogType type, boolean logToConsole) {
         // format and print message to console
-        if(type != LogType.USER_INPUT && type != LogType.PACKET && logToConsole) {
+        if(type != LogType.USER_INPUT && logToConsole) {
             System.out.println(message);
         }
 

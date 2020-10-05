@@ -40,7 +40,7 @@ public class ChatServer {
 
                     //handle client business in another thread
                     ClientConnectionData client = new ClientConnectionData(socket, socketIn, socketOut, socket.getInetAddress().getHostName());
-                    pool.execute(new ClientConnectionHandler(clientList, client));
+                    pool.execute(new ClientConnectionHandler(clientList, client, logger));
                 } catch (IOException ex) {
                     System.out.println(ex.getMessage());
                 }
