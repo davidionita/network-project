@@ -11,7 +11,6 @@ public class Packet {
             if(message.startsWith(type.prefix)) {
                 this.type = type;
                 this.info = message.substring(type.prefix.length());
-                System.out.println(message);
                 return;
             }
         }
