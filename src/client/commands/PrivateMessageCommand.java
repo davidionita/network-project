@@ -1,3 +1,5 @@
+// DEPRECATED DUE TO USE OF "@" AS PRIVATE MESSAGE SPECIAL COMMAND CHARACTER
+
 package client.commands;
 
 import client.ServerConnectionData;
