@@ -11,6 +11,9 @@ import java.util.Date;
 
 public class ServerConnectionHandler implements Runnable {
 
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_RED = "\u001B[31m";
+
     private BufferedReader socketIn;
     private Logger logger;
 
@@ -41,7 +44,7 @@ public class ServerConnectionHandler implements Runnable {
                     Date timestamp = new Date(Long.parseLong(parts[1]));
                     String message = parts[2];
 
-                    logger.log(String.format("%s (Privately) @ %s > %s", username, new SimpleDateFormat().format(timestamp), message), LogType.CHAT);
+                    logger.log(String.format("%s %s (Privately) %s @ %s > %s", username, ANSI_RED, ANSI_RESET, new SimpleDateFormat().format(timestamp), message), LogType.CHAT);
                 }
             }
         } catch (Exception e) {
