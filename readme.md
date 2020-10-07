@@ -4,7 +4,6 @@
 
 Trello Board: https://trello.com/b/jbDSqjlH/network-project-1
 
-<<<<<<< HEAD
 Schoology Assignment: https://bca.schoology.com/assignment/3098480746/info
 
 **Documentation**
