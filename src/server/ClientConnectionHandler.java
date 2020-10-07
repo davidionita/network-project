@@ -91,12 +91,21 @@ public class ClientConnectionHandler implements Runnable {
                 logger.log(String.format("@%s (%s) sent packet: '%s'", client.getUsername(), client.getName(), receivedPacket.toString()), LogType.PACKET_RECEIVED, true);
 
                 // 3. filter different types of packets here
-                // TODO: Private message packets, list packets
+                // TODO: List packets
                 if (receivedPacket.type == PacketType.CLIENT_MESSAGE) {
                     String message = receivedPacket.info.replaceAll("\\^", "");
                     String packetInfo = String.format("%s^%s^%s", client.getUsername(), new Date().getTime(), message);
 
                     broadcastPacket(new Packet(PacketType.SERVER_ROUTED_MESSAGE, packetInfo));
+                }
+                else if (receivedPacket.type == PacketType.CLIENT_PRIVATE_MESSAGE) {
+                    // TODO: Better server-side error checking for PMs - username must be legit or else send back error packet instead of pm packet, ...
+                    String[] parts = receivedPacket.info.split("\\^", 2);
+                    String privateUsername = parts[0];
+                    String message = parts[1].replaceAll("\\^", "");
+                    String packetInfo = String.format("%s^%s^%s", client.getUsername(), new Date().getTime(), message);
+
+                    sendPacket(new Packet(PacketType.SERVER_ROUTED_PRIVATE_MESSAGE, packetInfo), privateUsername);
                 }
             }
         } catch(IOException e) {

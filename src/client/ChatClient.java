@@ -26,7 +26,8 @@ public class ChatClient {
     private static Logger logger = new FileLogger();
 
     // exit string is one step above commands
-    private static String EXIT_STRING = "quit";
+    private static String EXIT_STRING = "/quit";
+    private static String PRIVATE_MESSAGE_PREFIX = "@";
     private static String COMMAND_PREFIX = "/";
 
     public static final boolean DEBUG_MODE = false;
@@ -94,6 +95,7 @@ public class ChatClient {
         /*
          * Handle server messages on another thread
          */
+
         ServerConnectionHandler serverHandler = new ServerConnectionHandler(socketIn, logger);
         Thread t = new Thread(serverHandler);
         t.start();
@@ -120,6 +122,12 @@ public class ChatClient {
                 } else {
                     logger.log("Command not found!", LogType.COMMAND_NOT_FOUND);
                 }
+            } else if (input.startsWith(PRIVATE_MESSAGE_PREFIX)) {
+                // TODO: Better client-side error checking for PMs - must include message, must include username, should not be the same username as current client ...
+                String username = input.substring(1, input.indexOf(" "));
+                String message = input.substring(input.indexOf(" ")+1);
+                Packet packet = new Packet(PacketType.CLIENT_PRIVATE_MESSAGE, username+"^"+message);
+                socketOut.println(packet);
             } else {
                 Packet packet = new Packet(PacketType.CLIENT_MESSAGE, input);
                 socketOut.println(packet);
@@ -131,6 +139,7 @@ public class ChatClient {
         /*
          * Close all streams
          */
+
         logger.log(EXIT_STRING);
         socketOut.close();
         userInput.close();

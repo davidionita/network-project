@@ -7,6 +7,7 @@ public enum PacketType {
     SERVER_USERNAME_INVALID("invalid_username"),
     SERVER_USERNAME_VALID("valid_username"),
     SERVER_ROUTED_MESSAGE("server_message"),
+    SERVER_ROUTED_PRIVATE_MESSAGE("server_private_message"),
 
     // sent from clients to server
     CLIENT_USERNAME("username"),

@@ -28,13 +28,20 @@ public class ServerConnectionHandler implements Runnable {
                 logger.log(inputMessage, LogType.PACKET_RECEIVED, ChatClient.DEBUG_MODE);
                 Packet receivedPacket = new Packet(inputMessage);
 
-                if(receivedPacket.type == PacketType.SERVER_ROUTED_MESSAGE) {
+                if (receivedPacket.type == PacketType.SERVER_ROUTED_MESSAGE) {
                     String[] parts = receivedPacket.info.split("\\^", 3);
                     String username = parts[0];
                     Date timestamp = new Date(Long.parseLong(parts[1]));
                     String message = parts[2];
 
                     logger.log(String.format("%s @ %s > %s", username, new SimpleDateFormat().format(timestamp), message), LogType.CHAT);
+                } else if (receivedPacket.type == PacketType.SERVER_ROUTED_PRIVATE_MESSAGE) {
+                    String[] parts = receivedPacket.info.split("\\^", 3);
+                    String username = parts[0];
+                    Date timestamp = new Date(Long.parseLong(parts[1]));
+                    String message = parts[2];
+
+                    logger.log(String.format("%s (Privately) @ %s > %s", username, new SimpleDateFormat().format(timestamp), message), LogType.CHAT);
                 }
             }
         } catch (Exception e) {
