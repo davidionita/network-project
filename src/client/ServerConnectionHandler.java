@@ -31,7 +31,11 @@ public class ServerConnectionHandler implements Runnable {
                 logger.log(inputMessage, LogType.PACKET_RECEIVED, ChatClient.DEBUG_MODE);
                 Packet receivedPacket = new Packet(inputMessage);
 
-                if (receivedPacket.type == PacketType.SERVER_ROUTED_MESSAGE) {
+                if(receivedPacket.type == PacketType.SERVER_NEW_JOIN) {
+                    String username = receivedPacket.info;
+
+                    logger.log(String.format("%s has joined the server!", username), LogType.CONNECTED);
+                } else if (receivedPacket.type == PacketType.SERVER_ROUTED_MESSAGE) {
                     String[] parts = receivedPacket.info.split("\\^", 3);
                     String username = parts[0];
                     Date timestamp = new Date(Long.parseLong(parts[1]));

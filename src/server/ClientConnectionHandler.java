@@ -103,9 +103,12 @@ public class ClientConnectionHandler implements Runnable {
                     String[] parts = receivedPacket.info.split("\\^", 2);
                     String privateUsername = parts[0];
                     String message = parts[1].replaceAll("\\^", "");
-                    String packetInfo = String.format("%s^%s^%s", client.getUsername(), new Date().getTime(), message);
 
-                    sendPacket(new Packet(PacketType.SERVER_ROUTED_PRIVATE_MESSAGE, packetInfo), privateUsername);
+                    Packet senderMessagePacket = new Packet(PacketType.SERVER_ROUTED_PRIVATE_MESSAGE, String.format("%s^%s^%s", privateUsername, new Date().getTime(), message));
+                    Packet receiverMessagePacket = new Packet(PacketType.SERVER_ROUTED_PRIVATE_MESSAGE, String.format("%s^%s^%s", client.getUsername(), new Date().getTime(), message));
+
+                    clientOut.println(senderMessagePacket);
+                    sendPacket(receiverMessagePacket, privateUsername);
                 }
             }
         } catch(IOException e) {

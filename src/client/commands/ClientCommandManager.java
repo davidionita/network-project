@@ -11,7 +11,7 @@ public class ClientCommandManager {
     private Map<String, ClientCommand> commands = new HashMap<>();
 
     public ClientCommandManager(Logger logger, ServerConnectionData serverData) {
-        addCommand(new PrivateMessageCommand(logger, serverData));
+
     }
 
     private void addCommand(ClientCommand command) {
