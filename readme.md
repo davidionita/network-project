@@ -53,3 +53,5 @@ A full list of log types and descriptions can be found below:
 - Chat - a chat has occurred
 - User Input - the client typed user input
 - Invalid Command - the client inputted an invalid command
+
+Each different type is logged to the file with a custom prefix, helping make each event clear to administrators.
