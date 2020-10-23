@@ -2,6 +2,7 @@ package server;
 
 import logs.LogType;
 import logs.Logger;
+import packets.client.ClientListPacket;
 import packets.server.*;
 import packets.Packet;
 import packets.client.ClientMessagePacket;
@@ -57,6 +58,7 @@ public class ClientConnectionHandler implements Runnable {
         }
     }
 
+    // other packet methods
     private boolean isUsernameAvailable(String username) {
         synchronized (clientList) {
             for(ClientConnectionData client : clientList) {
@@ -66,6 +68,15 @@ public class ClientConnectionHandler implements Runnable {
             }
         }
         return true;
+    }
+    private List<String> getConnectedUsers() {
+        List<String> connected = new ArrayList<>();
+        synchronized (clientList) {
+            for (ClientConnectionData connectedClient : clientList) {
+                connected.add(connectedClient.getUsername());
+            }
+        }
+        return connected;
     }
 
     @Override
@@ -88,23 +99,21 @@ public class ClientConnectionHandler implements Runnable {
                     }
 
                     if(newUsername != null && isUsernameAvailable(newUsername)) {
+                        String oldUsername = client.getUsername();
                         client.setUsername(newUsername);
                         client.out.writeObject(new ServerUsernameValidPacket(newUsername));
                         logger.log(String.format("Client (%s) successfully set username to %s! Valid username packet sent.", client.name, client.getUsername()), LogType.PACKET_SENT);
 
-                        List<String> connected = new ArrayList<>();
                         synchronized (clientList) {
                             clientList.add(client);
-
-                            if(isConnecting) {
-                                for (ClientConnectionData connectedClient : clientList) {
-                                    connected.add(connectedClient.getUsername());
-                                }
-                            }
                         }
+                        List<String> connectedUsers = getConnectedUsers();
 
-                        if(isConnecting)
-                            broadcastPacket(new ServerJoinPacket(newUsername, connected));
+                        if(isConnecting) {
+                            broadcastPacket(new ServerJoinPacket(newUsername, connectedUsers));
+                        } else {
+                            broadcastPacket(new ServerUsernameChangePacket(oldUsername, newUsername, connectedUsers));
+                        }
                     } else {
                         client.out.writeObject(new ServerUsernameInvalidPacket());
                     }
@@ -125,6 +134,9 @@ public class ClientConnectionHandler implements Runnable {
                         routedMessage = new ServerRoutedMessagePacket(client.getUsername(), messagePacket.message, false, null);
                         broadcastPacket(routedMessage);
                     }
+                } else if(input instanceof ClientListPacket) {
+                    List<String> connectedUsers = getConnectedUsers();
+                    client.out.writeObject(new ServerListPacket(connectedUsers));
                 } else {
                     client.out.writeObject(new ServerErrorPacket("Unknown packet received."));
                 }
@@ -139,7 +151,7 @@ public class ClientConnectionHandler implements Runnable {
             }
             logger.log(String.format("%s<%s> has disconnected.", client.getUsername(), client.name), LogType.DISCONNECTED, true);
             if(client.getUsername() != null)
-                broadcastPacket(new ServerDisconnectPacket(client.getUsername()));
+                broadcastPacket(new ServerDisconnectPacket(client.getUsername(), getConnectedUsers()));
 
             try {
                 client.socket.close();

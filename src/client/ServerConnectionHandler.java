@@ -31,7 +31,9 @@ public class ServerConnectionHandler implements Runnable {
                 logger.log(input.toString(), LogType.PACKET_RECEIVED, ChatClient.DEBUG_MODE);
 
                 if(input instanceof ServerDisconnectPacket) {
+                    ServerDisconnectPacket status = (ServerDisconnectPacket) input;
 
+                    logger.log(String.format("'%s' has disconnected from the server! Connected users: %s.", status.username));
                 } else if(input instanceof ServerJoinPacket) {
                     ServerJoinPacket status = (ServerJoinPacket) input;
 
@@ -61,6 +63,12 @@ public class ServerConnectionHandler implements Runnable {
                     logger.log("Invalid username provided. Please try again.");
                 } else if(input instanceof ServerUsernameValidPacket) {
                     logger.log(String.format("Username set to %s.", ((ServerUsernameValidPacket) input).username));
+                } else if(input instanceof ServerListPacket) {
+                    ServerListPacket status = (ServerListPacket) input;
+                    logger.log(String.format("Connected users: %s",  String.join(", ", status.connectedUsers)));
+                } else if(input instanceof ServerUsernameChangePacket) {
+                    ServerUsernameChangePacket status = (ServerUsernameChangePacket) input;
+                    logger.log(String.format("'%s' has changed their name to '%s'! Connected users: %s", status.oldUsername, status.newUsername, String.join(", ", status.connectedUsers)));
                 } else if(input instanceof ServerErrorPacket) {
                     logger.log(String.format("Server Error > %s", ((ServerErrorPacket) input).message), LogType.ERROR);
                 }

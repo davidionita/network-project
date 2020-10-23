@@ -12,6 +12,7 @@ public class ClientCommandManager {
 
     public ClientCommandManager(Logger logger, ServerConnectionData serverData) {
         addCommand(new PrivateMessageCommand(logger, serverData));
+        addCommand(new ListCommand(logger, serverData.socketOut));
     }
 
     private void addCommand(ClientCommand command) {

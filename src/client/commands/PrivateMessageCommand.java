@@ -12,8 +12,8 @@ import java.util.Set;
 
 public class PrivateMessageCommand implements ClientCommand {
 
-    private Logger logger;
-    private ServerConnectionData serverData;
+    private final Logger logger;
+    private final ServerConnectionData serverData;
 
     PrivateMessageCommand(Logger logger, ServerConnectionData serverData) {
         this.logger = logger;
