@@ -25,7 +25,7 @@ public class ServerRoutedMessagePacket implements Packet {
 
     @Override
     public String toString() {
-        String recipients = this.recipients != null ? String.join(", ", this.recipients) : "No recipients";
+        String recipients = this.recipients != null ? String.join(", ", this.recipients) : "No recipients specified.";
         return String.format("ServerRoutedMessagePacket (%s, %s, %b, %s)", senderUsername, message, isPrivate, recipients);
     }
 }

@@ -13,6 +13,7 @@ public class ClientCommandManager {
     public ClientCommandManager(Logger logger, ServerConnectionData serverData) {
         addCommand(new PrivateMessageCommand(logger, serverData));
         addCommand(new ListCommand(logger, serverData.socketOut));
+        addCommand(new ChangeUsernameCommand(logger, serverData.socketOut));
     }
 
     private void addCommand(ClientCommand command) {
@@ -26,6 +27,7 @@ public class ClientCommandManager {
     }
 
     public ClientCommand getCommand(String firstArgument) {
+        firstArgument = firstArgument.toLowerCase();
         // private message is a special case
         if(firstArgument.startsWith("@")) {
             return this.commands.get("@");

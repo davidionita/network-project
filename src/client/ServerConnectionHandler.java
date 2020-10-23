@@ -33,7 +33,7 @@ public class ServerConnectionHandler implements Runnable {
                 if(input instanceof ServerDisconnectPacket) {
                     ServerDisconnectPacket status = (ServerDisconnectPacket) input;
 
-                    logger.log(String.format("'%s' has disconnected from the server! Connected users: %s.", status.username));
+                    logger.log(String.format("'%s' has disconnected from the server! Connected users: %s.", status.username, String.join(", ", status.connectedUsers)));
                 } else if(input instanceof ServerJoinPacket) {
                     ServerJoinPacket status = (ServerJoinPacket) input;
 
@@ -50,25 +50,25 @@ public class ServerConnectionHandler implements Runnable {
                             } else {
                                 // list of recipients only returned to the sender
                                 String recipients = String.join(", ", messagePacket.recipients);
-                                logger.log(String.format("%s%s(Privately)%s @ %s > %s", recipients, ANSI_RED, ANSI_RESET, new SimpleDateFormat().format(messagePacket.timestamp), messagePacket.message), LogType.CHAT);
+                                logger.log(String.format("%s%s (Privately)%s @ %s > %s", recipients, ANSI_RED, ANSI_RESET, new SimpleDateFormat().format(messagePacket.timestamp), messagePacket.message), LogType.CHAT);
                             }
                         } else {
-                            logger.log(String.format("%s %s (Privately)%s @ %s > %s", messagePacket.senderUsername, ANSI_RED, ANSI_RESET, new SimpleDateFormat().format(messagePacket.timestamp), messagePacket.message), LogType.CHAT);
+                            logger.log(String.format("%s%s (Privately)%s @ %s > %s", messagePacket.senderUsername, ANSI_RED, ANSI_RESET, new SimpleDateFormat().format(messagePacket.timestamp), messagePacket.message), LogType.CHAT);
                         }
                     } else {
                         // public messages
                         logger.log(String.format("%s @ %s > %s", messagePacket.senderUsername, new SimpleDateFormat().format(messagePacket.timestamp), messagePacket.message), LogType.CHAT);
                     }
                 } else if(input instanceof ServerUsernameInvalidPacket) {
-                    logger.log("Invalid username provided. Please try again.");
+                    logger.log("Username already taken or invalid.  Please try again.");
                 } else if(input instanceof ServerUsernameValidPacket) {
                     logger.log(String.format("Username set to %s.", ((ServerUsernameValidPacket) input).username));
                 } else if(input instanceof ServerListPacket) {
                     ServerListPacket status = (ServerListPacket) input;
-                    logger.log(String.format("Connected users: %s",  String.join(", ", status.connectedUsers)));
+                    logger.log(String.format("Connected users: %s.",  String.join(", ", status.connectedUsers)));
                 } else if(input instanceof ServerUsernameChangePacket) {
                     ServerUsernameChangePacket status = (ServerUsernameChangePacket) input;
-                    logger.log(String.format("'%s' has changed their name to '%s'! Connected users: %s", status.oldUsername, status.newUsername, String.join(", ", status.connectedUsers)));
+                    logger.log(String.format("'%s' has changed their name to '%s'! Connected users: %s.", status.oldUsername, status.newUsername, String.join(", ", status.connectedUsers)));
                 } else if(input instanceof ServerErrorPacket) {
                     logger.log(String.format("Server Error > %s", ((ServerErrorPacket) input).message), LogType.ERROR);
                 }

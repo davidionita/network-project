@@ -36,7 +36,7 @@ public class ListCommand implements ClientCommand {
         try {
             socketOut.writeObject(new ClientListPacket());
         } catch(IOException e) {
-            logger.log("IO Connection Error: Could not request ClientList.", LogType.ERROR);
+            logger.log("IO Connection Error: Could not request client list.", LogType.ERROR);
         }
     }
 }

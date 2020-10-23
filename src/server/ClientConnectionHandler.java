@@ -26,7 +26,7 @@ public class ClientConnectionHandler implements Runnable {
 
     // sending packets to clients
     private void broadcastPacket(Packet packet) {
-        logger.log("-- BROADCAST -- Sent packet '" + packet.toString() + "' to all clients.", LogType.PACKET_SENT);
+        logger.log("Packet Broadcast > '" + packet.toString() + "' to all clients.", LogType.PACKET_SENT);
         synchronized (clientList) {
             for(ClientConnectionData client : clientList) {
                 try {
@@ -102,19 +102,18 @@ public class ClientConnectionHandler implements Runnable {
                         String oldUsername = client.getUsername();
                         client.setUsername(newUsername);
                         client.out.writeObject(new ServerUsernameValidPacket(newUsername));
-                        logger.log(String.format("Client (%s) successfully set username to %s! Valid username packet sent.", client.name, client.getUsername()), LogType.PACKET_SENT);
-
-                        synchronized (clientList) {
-                            clientList.add(client);
-                        }
-                        List<String> connectedUsers = getConnectedUsers();
+                        logger.log(String.format("Client %s<%s> successfully set username to %s! Valid username packet sent.", client.getUsername(), client.name, client.getUsername()), LogType.PACKET_SENT);
 
                         if(isConnecting) {
-                            broadcastPacket(new ServerJoinPacket(newUsername, connectedUsers));
+                            synchronized (clientList) {
+                                clientList.add(client);
+                                broadcastPacket(new ServerJoinPacket(newUsername, getConnectedUsers()));
+                            }
                         } else {
-                            broadcastPacket(new ServerUsernameChangePacket(oldUsername, newUsername, connectedUsers));
+                            broadcastPacket(new ServerUsernameChangePacket(oldUsername, newUsername, getConnectedUsers()));
                         }
                     } else {
+                        logger.log(String.format("Client %s<%s> could not set username to '%s'. Invalid username packet sent.", client.getUsername(), client.name, newUsername), LogType.PACKET_SENT);
                         client.out.writeObject(new ServerUsernameInvalidPacket());
                     }
                 } else if(input instanceof ClientMessagePacket && !isConnecting) {

@@ -87,7 +87,7 @@ public class ChatClient {
                 logger.log("Success: Now connected as '" + username + "'!", LogType.CONNECTED);
                 break;
             } else if(response instanceof ServerUsernameInvalidPacket) {
-                logger.log("Username already taken. Please enter another username.", LogType.ERROR);
+                logger.log("Username already taken or invalid. Please enter another username.", LogType.ERROR);
             } else {
                 logger.log(String.format("Unknown Packet received - %s.", response.getClass()), LogType.ERROR);
             }
