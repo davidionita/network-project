@@ -5,6 +5,8 @@ import logs.Logger;
 import packets.Packet;
 
 import java.io.BufferedReader;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -13,10 +15,10 @@ public class ServerConnectionHandler implements Runnable {
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_RED = "\u001B[31m";
 
-    private BufferedReader socketIn;
+    private ObjectInput socketIn;
     private Logger logger;
 
-    public ServerConnectionHandler(BufferedReader socketIn, Logger logger) {
+    public ServerConnectionHandler(ObjectInputStream socketIn, Logger logger) {
         this.socketIn = socketIn;
         this.logger = logger;
     }

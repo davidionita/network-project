@@ -6,10 +6,10 @@ import logs.FileLogger;
 import logs.LogType;
 import logs.Logger;
 import packets.Packet;
+import packets.client.ClientUsernameRequestPacket;
+import packets.server.ServerUsernameValidPacket;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,8 +19,8 @@ import java.util.Scanner;
 public class ChatClient {
 
     private static Socket socket;
-    private static BufferedReader socketIn;
-    private static PrintWriter socketOut;
+    private static ObjectInputStream socketIn;
+    private static ObjectOutputStream socketOut;
 
     private static Logger logger = new FileLogger();
 
@@ -66,8 +66,8 @@ public class ChatClient {
         userInput.nextLine();
 
         socket = new Socket(serverIp, port);
-        socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        socketOut = new PrintWriter(socket.getOutputStream(), true);
+        socketIn = new ObjectInputStream(socket.getInputStream());
+        socketOut = new ObjectOutputStream(socket.getOutputStream());
 
         /*
          * Send a valid username
@@ -78,12 +78,12 @@ public class ChatClient {
 
         while(true) {
             String username = getUsername(userInput);
-            socketOut.println(new Packet(PacketType.CLIENT_USERNAME, username));
+            socketOut.writeObject(new ClientUsernameRequestPacket(username));
 
-            String response = socketIn.readLine();
-            logger.log(response, LogType.PACKET_RECEIVED, DEBUG_MODE);
+            Packet response = (Packet) socketIn.readObject();
+            logger.log(response.getClass().toString(), LogType.PACKET_RECEIVED, DEBUG_MODE);
 
-            if (response.startsWith(PacketType.SERVER_USERNAME_VALID.prefix)) {
+            if (response instanceof ServerUsernameValidPacket) {
                 logger.log("Now connected as " + username + "!", LogType.CONNECTED);
                 break;
             } else {

@@ -3,13 +3,10 @@ package server;
 import logs.FileLogger;
 import logs.Logger;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,8 +32,8 @@ public class ChatServer {
                     String connectionMessage = String.format("Connected to %s:%d on local port %d.", socket.getInetAddress(), socket.getPort(), socket.getLocalPort());
                     logger.log(connectionMessage);
 
-                    BufferedReader socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    PrintWriter socketOut = new PrintWriter(socket.getOutputStream(), true);
+                    ObjectInputStream socketIn = new ObjectInputStream(socket.getInputStream());
+                    ObjectOutputStream socketOut = new ObjectOutputStream(socket.getOutputStream());
 
                     //handle client business in another thread
                     ClientConnectionData client = new ClientConnectionData(socket, socketIn, socketOut, socket.getInetAddress().getHostName());

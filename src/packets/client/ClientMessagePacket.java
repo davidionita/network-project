@@ -3,26 +3,27 @@ package packets.client;
 import packets.Packet;
 
 import java.util.List;
+import java.util.Set;
 
-public class ClientMessage implements Packet {
+public class ClientMessagePacket implements Packet {
 
-    private final String message;
+    public final String message;
 
     public final boolean isPrivate;
-    private List<String> recipients;
+    private Set<String> recipients;
 
-    public ClientMessage(String message) {
+    public ClientMessagePacket(String message) {
         this.message = message;
         this.isPrivate = false;
     }
 
-    public ClientMessage(String message, List<String> recipients) {
+    public ClientMessagePacket(String message, Set<String> recipients) {
         this.message = message;
         this.isPrivate = true;
         this.recipients = recipients;
     }
 
-    public List<String> getRecipients() {
+    public Set<String> getRecipients() {
         return recipients;
     }
 }
