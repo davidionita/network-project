@@ -9,4 +9,9 @@ public class ServerUsernameValidPacket implements Packet {
     public ServerUsernameValidPacket(String username) {
         this.username = username;
     }
+
+    @Override
+    public String toString() {
+        return String.format("ServerUsernameValidPacket (%s)", username);
+    }
 }

@@ -26,4 +26,10 @@ public class ClientMessagePacket implements Packet {
     public Set<String> getRecipients() {
         return recipients;
     }
+
+    @Override
+    public String toString() {
+        String recipients = getRecipients() != null ? String.join(", ", getRecipients()) : "No recipients";
+        return String.format("Client Message Packet (%s, %b, %s)", this.message, this.isPrivate, recipients);
+    }
 }

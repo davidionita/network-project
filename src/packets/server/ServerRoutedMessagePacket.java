@@ -23,4 +23,9 @@ public class ServerRoutedMessagePacket implements Packet {
         this.timestamp = new Date();
     }
 
+    @Override
+    public String toString() {
+        String recipients = this.recipients != null ? String.join(", ", this.recipients) : "No recipients";
+        return String.format("ServerRoutedMessagePacket (%s, %s, %b, %s)", senderUsername, message, isPrivate, recipients);
+    }
 }

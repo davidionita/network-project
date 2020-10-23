@@ -14,4 +14,8 @@ public class ServerDisconnectPacket implements Packet {
         this.connectedUsers = connectedUsers;
     }
 
+    @Override
+    public String toString() {
+        return String.format("ServerDisconnectPacket (%s, %s)", username, String.join(", ", connectedUsers));
+    }
 }

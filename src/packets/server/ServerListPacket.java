@@ -12,4 +12,8 @@ public class ServerListPacket implements Packet {
         this.connectedUsers = connectedUsers;
     }
 
+    @Override
+    public String toString() {
+        return String.format("ServerListPacket (%s)", String.join(", ", connectedUsers));
+    }
 }

@@ -14,4 +14,8 @@ public class ServerJoinPacket implements Packet {
         this.connectedUsers = connectedUsers;
     }
 
+    @Override
+    public String toString() {
+        return String.format("ServerJoinPacket (%s, %s)", username, String.join(", ", connectedUsers));
+    }
 }

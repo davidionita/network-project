@@ -10,4 +10,8 @@ public class ServerErrorPacket implements Packet {
         this.message = message;
     }
 
+    @Override
+    public String toString() {
+        return String.format("ServerErrorPacket (%s)", message);
+    }
 }

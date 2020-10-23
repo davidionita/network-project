@@ -15,4 +15,9 @@ public class ServerUsernameChangePacket implements Packet {
         this.newUsername = newUsername;
         this.connectedUsers = connectedUsers;
     }
+
+    @Override
+    public String toString() {
+        return String.format("ServerUsernameChangePacket (%s, %s, %s)", oldUsername, newUsername, String.format(", ", connectedUsers));
+    }
 }

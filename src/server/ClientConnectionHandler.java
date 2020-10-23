@@ -122,7 +122,9 @@ public class ClientConnectionHandler implements Runnable {
                     ServerRoutedMessagePacket routedMessage;
 
                     if(messagePacket.isPrivate) {
-                        if(messagePacket.getRecipients().contains(client.getUsername())) {
+                        if(messagePacket.getRecipients().size() == 0) {
+                            client.out.writeObject(new ServerErrorPacket("You must specify recipients in your private message!"));
+                        } else if(messagePacket.getRecipients().contains(client.getUsername())) {
                             client.out.writeObject(new ServerErrorPacket("You cannot send a message to yourself!"));
                         } else {
                             routedMessage = new ServerRoutedMessagePacket(client.getUsername(), messagePacket.message, true, null);

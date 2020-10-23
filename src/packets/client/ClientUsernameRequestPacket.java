@@ -10,4 +10,8 @@ public class ClientUsernameRequestPacket implements Packet {
         this.username = username;
     }
 
+    @Override
+    public String toString() {
+        return String.format("ClientUsernameRequestPacket (%s)", username);
+    }
 }
