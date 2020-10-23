@@ -6,7 +6,9 @@ import logs.FileLogger;
 import logs.LogType;
 import logs.Logger;
 import packets.Packet;
+import packets.client.ClientMessagePacket;
 import packets.client.ClientUsernameRequestPacket;
+import packets.server.ServerUsernameInvalidPacket;
 import packets.server.ServerUsernameValidPacket;
 
 import java.io.*;
@@ -26,8 +28,6 @@ public class ChatClient {
 
     // exit string is one step above commands
     private static String EXIT_STRING = "/quit";
-    private static String PRIVATE_MESSAGE_PREFIX = "@";
-    private static String COMMAND_PREFIX = "/";
 
     public static final boolean DEBUG_MODE = false;
 
@@ -84,10 +84,12 @@ public class ChatClient {
             logger.log(response.getClass().toString(), LogType.PACKET_RECEIVED, DEBUG_MODE);
 
             if (response instanceof ServerUsernameValidPacket) {
-                logger.log("Now connected as " + username + "!", LogType.CONNECTED);
+                logger.log("Success: Now connected as '" + username + "'!", LogType.CONNECTED);
                 break;
+            } else if(response instanceof ServerUsernameInvalidPacket) {
+                logger.log("Username already taken. Please enter another username.", LogType.ERROR);
             } else {
-                logger.log("Username already taken. Please enter another username. ", LogType.ERROR);
+                logger.log(String.format("Unknown Packet received - %s.", response.getClass()), LogType.ERROR);
             }
         }
 
@@ -108,32 +110,19 @@ public class ChatClient {
 
         while(!input.startsWith(EXIT_STRING)) {
             logger.log(input, LogType.USER_INPUT);
+            String[] inputArray = input.split("\\s+");
 
-            if (input.startsWith(COMMAND_PREFIX)) {
-                String[] commandParts = input.substring(1).split("\\s+");
-                String prefix = commandParts[0];
-                List<String> cArgs = commandParts.length > 1 ? Arrays.asList(commandParts).subList(1, commandParts.length) : new ArrayList<>();
+            ClientCommand command = commandManager.getCommand(inputArray[0]);
 
-                ClientCommand command = commandManager.getCommand(prefix);
-
-                if(command != null) {
-                     command.execute(cArgs);
-                } else {
-                    logger.log("Command not found!", LogType.COMMAND_NOT_FOUND);
-                }
-            } else if (input.startsWith(PRIVATE_MESSAGE_PREFIX)) {
-                // TODO: Better client-side error checking for PMs - must include message, must include username, should not be the same username as current client ...
-                String username = input.substring(1, input.indexOf(" "));
-                String message = input.substring(input.indexOf(" ")+1);
-                Packet packet = new Packet(PacketType.CLIENT_PRIVATE_MESSAGE, username+"^"+message);
-                socketOut.println(packet);
+            if(command != null) {
+                command.execute(Arrays.asList(inputArray));
             } else {
-                Packet packet = new Packet(PacketType.CLIENT_MESSAGE, input);
-                socketOut.println(packet);
+                ClientMessagePacket message = new ClientMessagePacket(input);
+                socketOut.writeObject(message);
             }
+
             input = userInput.nextLine();
         }
-
 
         /*
          * Close all streams

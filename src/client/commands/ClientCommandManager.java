@@ -11,18 +11,25 @@ public class ClientCommandManager {
     private Map<String, ClientCommand> commands = new HashMap<>();
 
     public ClientCommandManager(Logger logger, ServerConnectionData serverData) {
-
+        addCommand(new PrivateMessageCommand(logger, serverData));
     }
 
     private void addCommand(ClientCommand command) {
         this.commands.put(command.getPrefix(), command);
-        for(String alias : command.getAliases()) {
-            this.commands.put(alias, command);
+
+        if(command.getAliases() != null) {
+            for (String alias : command.getAliases()) {
+                this.commands.put(alias, command);
+            }
         }
     }
 
-    public ClientCommand getCommand(String prefix) {
-        return commands.get(prefix);
+    public ClientCommand getCommand(String firstArgument) {
+        // private message is a special case
+        if(firstArgument.startsWith("@")) {
+            return this.commands.get("@");
+        }
+        return commands.get(firstArgument);
     }
 
 }

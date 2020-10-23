@@ -1,14 +1,14 @@
 package client;
 
-import java.io.BufferedReader;
-import java.io.PrintWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 public class ServerConnectionData {
 
-    public final BufferedReader socketIn;
-    public final PrintWriter socketOut;
+    public final ObjectInputStream socketIn;
+    public final ObjectOutputStream socketOut;
 
-    public ServerConnectionData(BufferedReader socketIn, PrintWriter socketOut) {
+    ServerConnectionData(ObjectInputStream socketIn, ObjectOutputStream socketOut) {
         this.socketIn = socketIn;
         this.socketOut = socketOut;
     }

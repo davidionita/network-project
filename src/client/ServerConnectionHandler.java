@@ -3,12 +3,11 @@ package client;
 import logs.LogType;
 import logs.Logger;
 import packets.Packet;
+import packets.server.*;
 
-import java.io.BufferedReader;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class ServerConnectionHandler implements Runnable {
 
@@ -26,30 +25,44 @@ public class ServerConnectionHandler implements Runnable {
     @Override
     public void run() {
         try {
-            String inputMessage;
+            Packet input;
 
-            while ((inputMessage = socketIn.readLine()) != null) {
-                logger.log(inputMessage, LogType.PACKET_RECEIVED, ChatClient.DEBUG_MODE);
-                Packet receivedPacket = new Packet(inputMessage);
+            while ((input = (Packet) socketIn.readObject()) != null) {
+                logger.log(input.toString(), LogType.PACKET_RECEIVED, ChatClient.DEBUG_MODE);
 
-                if(receivedPacket.type == PacketType.SERVER_NEW_JOIN) {
-                    String username = receivedPacket.info;
+                if(input instanceof ServerDisconnectPacket) {
 
-                    logger.log(String.format("%s has joined the server!", username), LogType.CONNECTED);
-                } else if (receivedPacket.type == PacketType.SERVER_ROUTED_MESSAGE) {
-                    String[] parts = receivedPacket.info.split("\\^", 3);
-                    String username = parts[0];
-                    Date timestamp = new Date(Long.parseLong(parts[1]));
-                    String message = parts[2];
+                } else if(input instanceof ServerJoinPacket) {
+                    ServerJoinPacket status = (ServerJoinPacket) input;
 
-                    logger.log(String.format("%s @ %s > %s", username, new SimpleDateFormat().format(timestamp), message), LogType.CHAT);
-                } else if (receivedPacket.type == PacketType.SERVER_ROUTED_PRIVATE_MESSAGE) {
-                    String[] parts = receivedPacket.info.split("\\^", 3);
-                    String username = parts[0];
-                    Date timestamp = new Date(Long.parseLong(parts[1]));
-                    String message = parts[2];
+                    logger.log(String.format("'%s' has joined the server! Connected users: %s.", status.username, String.join(", ", status.connectedUsers)), LogType.CONNECTED);
+                } else if(input instanceof ServerRoutedMessagePacket) {
+                    ServerRoutedMessagePacket messagePacket = (ServerRoutedMessagePacket) input;
 
-                    logger.log(String.format("%s %s (Privately) %s @ %s > %s", username, ANSI_RED, ANSI_RESET, new SimpleDateFormat().format(timestamp), message), LogType.CHAT);
+                    if(messagePacket.isPrivate) {
+                        // private messages
+                        if(messagePacket.recipients != null) {
+                            if(messagePacket.recipients.size() == 0) {
+                                // no one received the message
+                                logger.log("Sending Error: None of the recipients you addressed your message are currently connected.", LogType.ERROR);
+                            } else {
+                                // list of recipients only returned to the sender
+                                String recipients = String.join(", ", messagePacket.recipients);
+                                logger.log(String.format("%s%s(Privately)%s @ %s > %s", recipients, ANSI_RED, ANSI_RESET, new SimpleDateFormat().format(messagePacket.timestamp), messagePacket.message), LogType.CHAT);
+                            }
+                        } else {
+                            logger.log(String.format("%s %s (Privately)%s @ %s > %s", messagePacket.senderUsername, ANSI_RED, ANSI_RESET, new SimpleDateFormat().format(messagePacket.timestamp), messagePacket.message), LogType.CHAT);
+                        }
+                    } else {
+                        // public messages
+                        logger.log(String.format("%s @ %s > %s", messagePacket.senderUsername, new SimpleDateFormat().format(messagePacket.timestamp), messagePacket.message), LogType.CHAT);
+                    }
+                } else if(input instanceof ServerUsernameInvalidPacket) {
+                    logger.log("Invalid username provided. Please try again.");
+                } else if(input instanceof ServerUsernameValidPacket) {
+                    logger.log(String.format("Username set to %s.", ((ServerUsernameValidPacket) input).username));
+                } else if(input instanceof ServerErrorPacket) {
+                    logger.log(String.format("Server Error > %s", ((ServerErrorPacket) input).message), LogType.ERROR);
                 }
             }
         } catch (Exception e) {

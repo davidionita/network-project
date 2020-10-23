@@ -1,6 +1,10 @@
 package packets;
 
-public interface Packet {
+import java.io.Serializable;
+
+public interface Packet extends Serializable {
+
+    static final long serialVersionUID = 1L;
 
     /*
      * Server: packets sent from server to client exclusively

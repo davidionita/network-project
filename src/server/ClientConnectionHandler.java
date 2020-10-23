@@ -8,10 +8,7 @@ import packets.client.ClientMessagePacket;
 import packets.client.ClientUsernameRequestPacket;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class ClientConnectionHandler implements Runnable {
 
@@ -34,26 +31,30 @@ public class ClientConnectionHandler implements Runnable {
                 try {
                     client.out.writeObject(packet);
                 } catch(IOException e) {
-                    logger.log(String.format("Could not send packet %s to %s<%s>!", packet.getClass(), client.getUsername(), client.name), LogType.ERROR);
+                    logger.log(String.format("Could not send packet %s to %s<%s>!", packet.toString(), client.getUsername(), client.name), LogType.ERROR);
                 }
             }
         }
     }
-    private void sendPacket(Packet packet, Set<String> usernames) {
+    private Set<String> sendPacket(Packet packet, Set<String> usernames) {
+        Set<String> received = new HashSet<>();
+
         synchronized (clientList) {
             for(ClientConnectionData client : clientList) {
-                if(usernames.contains(client.getUsername())) {
+                if(usernames.contains(client.getUsername().toLowerCase())) {
+                    received.add(client.getUsername());
+
                     try {
                         client.out.writeObject(packet);
-                        logger.log(String.format("Sent packet '%s' to client %s<%s>.", packet.getClass(), client.getUsername(), client.name));
+                        logger.log(String.format("Sent packet '%s' to client %s<%s>.", packet.toString(), client.getUsername(), client.name));
                     } catch(Exception e) {
-                        logger.log(String.format("Could not send packet %s to %s<%s>!", packet.getClass(), client.getUsername(), client.name), LogType.ERROR);
+                        e.printStackTrace();
+                        logger.log(String.format("Could not send packet %s to %s<%s>!", packet.toString(), client.getUsername(), client.name), LogType.ERROR);
                     }
-                    break;
                 }
             }
+            return received;
         }
-        logger.log(String.format("Could not send packet '%s' to client %s<%s>. Client not connected.", packet.getClass(), client.getUsername(), client.name));
     }
 
     private boolean isUsernameAvailable(String username) {
@@ -112,14 +113,18 @@ public class ClientConnectionHandler implements Runnable {
                     ServerRoutedMessagePacket routedMessage;
 
                     if(messagePacket.isPrivate) {
-                        routedMessage = new ServerRoutedMessagePacket(client.getUsername(), messagePacket.message, true, messagePacket.getRecipients());
-                        sendPacket(routedMessage, messagePacket.getRecipients());
+                        if(messagePacket.getRecipients().contains(client.getUsername())) {
+                            client.out.writeObject(new ServerErrorPacket("You cannot send a message to yourself!"));
+                        } else {
+                            routedMessage = new ServerRoutedMessagePacket(client.getUsername(), messagePacket.message, true, null);
+                            Set<String> receivedRecipients = sendPacket(routedMessage, messagePacket.getRecipients());
+
+                            client.out.writeObject(new ServerRoutedMessagePacket(client.getUsername(), messagePacket.message, true, receivedRecipients));
+                        }
                     } else {
                         routedMessage = new ServerRoutedMessagePacket(client.getUsername(), messagePacket.message, false, null);
                         broadcastPacket(routedMessage);
                     }
-
-                    client.out.writeObject(routedMessage);
                 } else {
                     client.out.writeObject(new ServerErrorPacket("Unknown packet received."));
                 }

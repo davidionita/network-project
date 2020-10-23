@@ -32,8 +32,8 @@ public class ChatServer {
                     String connectionMessage = String.format("Connected to %s:%d on local port %d.", socket.getInetAddress(), socket.getPort(), socket.getLocalPort());
                     logger.log(connectionMessage);
 
-                    ObjectInputStream socketIn = new ObjectInputStream(socket.getInputStream());
                     ObjectOutputStream socketOut = new ObjectOutputStream(socket.getOutputStream());
+                    ObjectInputStream socketIn = new ObjectInputStream(socket.getInputStream());
 
                     //handle client business in another thread
                     ClientConnectionData client = new ClientConnectionData(socket, socketIn, socketOut, socket.getInetAddress().getHostName());
