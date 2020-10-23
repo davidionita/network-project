@@ -3,7 +3,6 @@ package server;
 import logs.LogType;
 import logs.Logger;
 import packets.Packet;
-import packets.PacketType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
