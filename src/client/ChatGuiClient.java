@@ -10,6 +10,8 @@ import packets.client.ClientMessagePacket;
 import packets.client.ClientUsernameRequestPacket;
 import packets.server.*;
 
+import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -89,8 +91,10 @@ public class ChatGuiClient extends Application {
     public static final boolean DEBUG_MODE = false;
     
     private Stage stage;
+    private Label currentUsersList;
     private TextArea messageArea;
     private TextField textInput;
+    private Button emojiButton;
     private Button sendButton;
 
     private ServerInfo serverInfo;
@@ -123,6 +127,13 @@ public class ChatGuiClient extends Application {
         this.stage = primaryStage;
         BorderPane borderPane = new BorderPane();
 
+        currentUsersList = new Label();
+        currentUsersList.setWrapText(true);
+
+        HBox culhbox = new HBox();
+        culhbox.getChildren().addAll(new Label("Current Users: "), currentUsersList);
+        borderPane.setTop(culhbox);
+
         messageArea = new TextArea();
         messageArea.setWrapText(true);
         messageArea.setEditable(false);
@@ -132,12 +143,15 @@ public class ChatGuiClient extends Application {
         textInput = new TextField();
         textInput.setEditable(false);
         textInput.setOnAction(e -> sendMessage());
+        emojiButton = new Button(":-)");
+        emojiButton.setDisable(false);
+        emojiButton.setOnAction(e -> openEmojiKeyboard());
         sendButton = new Button("Send");
         sendButton.setDisable(true);
         sendButton.setOnAction(e -> sendMessage());
 
         HBox hbox = new HBox();
-        hbox.getChildren().addAll(new Label("Message: "), textInput, sendButton);
+        hbox.getChildren().addAll(new Label("Message: "), textInput, emojiButton, sendButton);
         HBox.setHgrow(textInput, Priority.ALWAYS);
         borderPane.setBottom(hbox);
 
@@ -158,6 +172,7 @@ public class ChatGuiClient extends Application {
                 logger.close();
             } catch (Exception ex) {
                 System.out.println(ex.getMessage());
+                ex.printStackTrace();
             }
             socketListener.appRunning = false;
             try {
@@ -166,6 +181,32 @@ public class ChatGuiClient extends Application {
         });
 
         new Thread(socketListener).start();
+    }
+
+    // First detect OS type then execute keyboard shortcut to open emoji keyboard
+    private void openEmojiKeyboard() {
+        String os = System.getProperty("os.name").toLowerCase();
+
+        try {
+            Robot robot = new Robot();
+
+            if (os.contains("win")) {
+                robot.keyPress(KeyEvent.VK_WINDOWS);
+                robot.keyPress(KeyEvent.VK_PERIOD);
+                robot.keyRelease(KeyEvent.VK_WINDOWS);
+                robot.keyRelease(KeyEvent.VK_PERIOD);
+            } else if (os.contains("mac")) {
+                robot.keyPress(KeyEvent.VK_CONTROL);
+                robot.keyPress(KeyEvent.VK_META);
+                robot.keyPress(KeyEvent.VK_SPACE);
+                robot.keyRelease(KeyEvent.VK_CONTROL);
+                robot.keyRelease(KeyEvent.VK_META);
+                robot.keyRelease(KeyEvent.VK_SPACE);
+            }
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+            ex.printStackTrace();
+        }
     }
 
     private void sendMessage() {
@@ -190,6 +231,7 @@ public class ChatGuiClient extends Application {
             }
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
+            ex.printStackTrace();
         }
     }
 
@@ -299,6 +341,7 @@ public class ChatGuiClient extends Application {
                         socketOut.writeObject(new ClientUsernameRequestPacket(username));
                     } catch (Exception ex) {
                         System.out.println(ex.getMessage());
+                        ex.printStackTrace();
                     }
                 });
 
@@ -319,11 +362,13 @@ public class ChatGuiClient extends Application {
                                 stage.setTitle("Chatter - " + username);
                                 textInput.setEditable(true);
                                 sendButton.setDisable(false);
+                                currentUsersList.setText(String.join(", ", status.connectedUsers));
                                 messageArea.appendText("Welcome to the chatroom, " + username + "!\n");
                             });
                         }
                         else {
                             Platform.runLater(() -> {
+                                currentUsersList.setText(String.join(", ", status.connectedUsers));
                                 messageArea.appendText(user + " has joined the chatroom.\n");
                             });
                         }
@@ -362,6 +407,7 @@ public class ChatGuiClient extends Application {
 
                         String user = status.username;
                         Platform.runLater(() -> {
+                            currentUsersList.setText(String.join(", ", status.connectedUsers));
                             messageArea.appendText(user + "has left the chatroom.\n");
                         });
                     }
