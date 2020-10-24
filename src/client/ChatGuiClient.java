@@ -8,12 +8,13 @@ import logs.Logger;
 import packets.Packet;
 import packets.client.ClientMessagePacket;
 import packets.client.ClientUsernameRequestPacket;
-import packets.server.ServerUsernameInvalidPacket;
-import packets.server.ServerUsernameValidPacket;
+import packets.server.*;
 
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -74,6 +75,9 @@ class ServerInfo {
 }
 
 public class ChatGuiClient extends Application {
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_RED = "\u001B[31m";
+
     private Socket socket;
     //private BufferedReader in;
     //private PrintWriter out;
@@ -165,13 +169,25 @@ public class ChatGuiClient extends Application {
     }
 
     private void sendMessage() {
-        String message = textInput.getText().trim();
-        if (message.length() == 0)
+        ClientCommandManager commandManager = new ClientCommandManager(logger, new ServerConnectionData(socketIn, socketOut));
+
+        String input = textInput.getText().trim();
+        if (input.length() == 0)
             return;
         textInput.clear();
 
         try {
-            socketOut.writeObject(message);
+            logger.log(input, LogType.USER_INPUT);
+            String[] inputArray = input.split("\\s+");
+
+            ClientCommand command = commandManager.getCommand(inputArray[0]);
+
+            if(command != null) {
+                command.execute(Arrays.asList(inputArray));
+            } else {
+                ClientMessagePacket message = new ClientMessagePacket(input);
+                socketOut.writeObject(message);
+            }
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
@@ -281,32 +297,22 @@ public class ChatGuiClient extends Application {
 
                     try {
                         socketOut.writeObject(new ClientUsernameRequestPacket(username));
-                        Packet response = (Packet) socketIn.readObject();
-                        logger.log(response.getClass().toString(), LogType.PACKET_RECEIVED, DEBUG_MODE);
-
-
-                        if (response instanceof ServerUsernameValidPacket) {
-                            logger.log("Success: Now connected as '" + username + "'!", LogType.CONNECTED);
-                        } else if (response instanceof ServerUsernameInvalidPacket) {
-                            logger.log("Username already taken or invalid. Please enter another username.", LogType.ERROR);
-                        } else {
-                            logger.log(String.format("Unknown Packet received - %s.", response.getClass()), LogType.ERROR);
-                        }
-
                     } catch (Exception ex) {
                         System.out.println(ex.getMessage());
                     }
-
                 });
 
                 //handle all kinds of incoming messages
                 String incoming = "";
-                Packet response;
+                Packet input;
 
-                while (appRunning && (response = (Packet) socketIn.readObject()) != null) {
+                while (appRunning && (input = (Packet) socketIn.readObject()) != null) {
 
-                    if (incoming.startsWith("WELCOME")) {
-                        String user = incoming.substring(8);
+                    if (input instanceof ServerJoinPacket) {
+                        ServerJoinPacket status = (ServerJoinPacket) input;
+                        logger.log(String.format("'%s' has joined the server! Connected users: %s.", status.username, String.join(", ", status.connectedUsers)), LogType.CONNECTED);
+
+                        String user = status.username;
                         //got welcomed? Now you can send messages!
                         if (user.equals(username)) {
                             Platform.runLater(() -> {
@@ -322,16 +328,39 @@ public class ChatGuiClient extends Application {
                             });
                         }
 
-                    } else if (incoming.startsWith("CHAT")) {
-                        int split = incoming.indexOf(" ", 5);
-                        String user = incoming.substring(5, split);
-                        String msg = incoming.substring(split + 1);
+                    } else if (input instanceof ServerRoutedMessagePacket) {
+                        ServerRoutedMessagePacket messagePacket = (ServerRoutedMessagePacket) input;
 
-                        Platform.runLater(() -> {
-                            messageArea.appendText(user + ": " + msg + "\n");
-                        });
-                    } else if (incoming.startsWith("EXIT")) {
-                        String user = incoming.substring(5);
+                        if(messagePacket.isPrivate) {
+                            // private messages
+                            if(messagePacket.recipients != null) {
+                                if(messagePacket.recipients.size() == 0) {
+                                    // no one received the message
+                                    logger.log("Sending Error: None of the recipients you addressed your message are currently connected.", LogType.ERROR);
+                                } else {
+                                    // list of recipients only returned to the sender
+                                    String recipients = String.join(", ", messagePacket.recipients);
+                                    logger.log(String.format("%s%s (Privately)%s @ %s > %s", recipients, ANSI_RED, ANSI_RESET, new SimpleDateFormat().format(messagePacket.timestamp), messagePacket.message), LogType.CHAT);
+                                }
+                            } else {
+                                logger.log(String.format("%s%s (Privately)%s @ %s > %s", messagePacket.senderUsername, ANSI_RED, ANSI_RESET, new SimpleDateFormat().format(messagePacket.timestamp), messagePacket.message), LogType.CHAT);
+                                Platform.runLater(() -> {
+                                    messageArea.appendText(messagePacket.senderUsername + ANSI_RED + " (Privately)" + ANSI_RESET + " @ " + new SimpleDateFormat().format(messagePacket.timestamp) +  " > " + messagePacket.message + "\n");
+                                });
+                            }
+                        } else {
+                            // public messages
+                            logger.log(String.format("%s @ %s > %s", messagePacket.senderUsername, new SimpleDateFormat().format(messagePacket.timestamp), messagePacket.message), LogType.CHAT);
+                            Platform.runLater(() -> {
+                                messageArea.appendText(messagePacket.senderUsername + " @ " + new SimpleDateFormat().format(messagePacket.timestamp) +  " > " + messagePacket.message + "\n");
+                            });
+                        }
+
+                    } else if (input instanceof ServerDisconnectPacket) {
+                        ServerDisconnectPacket status = (ServerDisconnectPacket) input;
+                        logger.log(String.format("'%s' has disconnected from the server! Connected users: %s.", status.username, String.join(", ", status.connectedUsers)));
+
+                        String user = status.username;
                         Platform.runLater(() -> {
                             messageArea.appendText(user + "has left the chatroom.\n");
                         });
@@ -341,6 +370,7 @@ public class ChatGuiClient extends Application {
                 e.printStackTrace();
             } catch (Exception e) {
                 if (appRunning)
+                    System.out.println(e.getMessage());
                     e.printStackTrace();
             } 
             finally {
