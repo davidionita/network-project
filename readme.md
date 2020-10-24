@@ -1,16 +1,17 @@
 **network-project=1**
 
 (Lab 1 - Better Basic Chat App.: Sprint #1)
+(Lab 2 - Better Basic Chat App.: Sprint #2)
 
 Trello Board: https://trello.com/b/jbDSqjlH/network-project-1
-
-Schoology Assignment: https://bca.schoology.com/assignment/3098480746/info
 
 **Documentation**
 
 ***Client***
 
 ****Name****
+
+GUI and Text: 
 
 When joining the chat server, you must provide a valid name before chatting.
 
@@ -25,13 +26,27 @@ _Note:_ You may not use any other client command (below) until you set a valid n
 
 ****Chatting****
 
+GUI and Text: 
+
 To send a message to the entire server, respond with `[your desired message]`.
 
-To (privately) send a message to a specific user, respond with `@[username] [your desired private message]`.
+To privately send a message to a specific user, respond with `@[username] [your desired private message]`.
+
+You may also privately send a message to multiple users, just add subsequent `@[username]`s seperated by spaces between the first `@[username]` and message.
 
 ****Quiting****
 
-To quit the chat server, respond with `/quit` at any time.
+GUI: To quit the chat server, just exit your GUI window at any time. 
+Text: To quit the chat server, respond with `/quit` at any time.
+
+****Current Users****
+
+GUI: The current users connected to the server are always displayed at the top of the window and are continuously updated as users join/disconnect.
+Text: You will be sent a list of current users connected to the server when you first enter the server.  If you would like to check the current users, send the command `\whoishere` at any time.
+
+***Emoji Keyboard***
+
+The emoji keyboard button is exclusive to the GUI client.  When pressing this button, your Operating System's default emoji keyboard will open, allowing you to type and send emojis through the chat.  
 
 ***FileLogger***
 
