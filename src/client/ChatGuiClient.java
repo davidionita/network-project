@@ -101,6 +101,7 @@ public class ChatGuiClient extends Application {
     //volatile keyword makes individual reads/writes of the variable atomic
     // Since username is accessed from multiple threads, atomicity is important 
     private volatile String username = "";
+    private volatile boolean isConnected = false;
     public static void main(String[] args) {
         launch(args);
     }
@@ -363,13 +364,13 @@ public class ChatGuiClient extends Application {
                                 textInput.setEditable(true);
                                 sendButton.setDisable(false);
                                 currentUsersList.setText(String.join(", ", status.connectedUsers));
-                                messageArea.appendText("Welcome to the chatroom, " + username + "!\n");
+                                messageArea.appendText("Welcome to the chat room, " + username + "!\n");
                             });
                         }
                         else {
                             Platform.runLater(() -> {
                                 currentUsersList.setText(String.join(", ", status.connectedUsers));
-                                messageArea.appendText(user + " has joined the chatroom.\n");
+                                messageArea.appendText(user + " has joined the chat room.\n");
                             });
                         }
 
@@ -386,6 +387,9 @@ public class ChatGuiClient extends Application {
                                     // list of recipients only returned to the sender
                                     String recipients = String.join(", ", messagePacket.recipients);
                                     logger.log(String.format("%s%s (Privately)%s @ %s > %s", recipients, ANSI_RED, ANSI_RESET, new SimpleDateFormat().format(messagePacket.timestamp), messagePacket.message), LogType.CHAT);
+                                    Platform.runLater(() -> {
+                                        messageArea.appendText(recipients + ANSI_RED + " (Privately)" + ANSI_RESET + " @ " + new SimpleDateFormat().format(messagePacket.timestamp) +  " > " + messagePacket.message + "\n");
+                                    });
                                 }
                             } else {
                                 logger.log(String.format("%s%s (Privately)%s @ %s > %s", messagePacket.senderUsername, ANSI_RED, ANSI_RESET, new SimpleDateFormat().format(messagePacket.timestamp), messagePacket.message), LogType.CHAT);
@@ -408,8 +412,23 @@ public class ChatGuiClient extends Application {
                         String user = status.username;
                         Platform.runLater(() -> {
                             currentUsersList.setText(String.join(", ", status.connectedUsers));
-                            messageArea.appendText(user + "has left the chatroom.\n");
+                            messageArea.appendText(user + "has left the chat room.\n");
                         });
+                    } else if(input instanceof ServerUsernameInvalidPacket) {
+                        logger.log("Username already taken or invalid. Please enter another username.", LogType.ERROR);
+                        Platform.runLater(() -> {
+                            messageArea.appendText("Username already taken or invalid. Please enter another username.\n");
+                            if(!isConnected) {
+                                messageArea.appendText("This can be done via '/changeusername <username>'.");
+                            }
+                        });
+                    } else if(input instanceof ServerUsernameValidPacket) {
+                        username = ((ServerUsernameValidPacket) input).username;
+                        Platform.runLater(() -> {
+                            stage.setTitle("Chatter - " + username);
+                        });
+                        logger.log("Valid username packet received.", LogType.INFO);
+                        isConnected = true;
                     }
                 }
             } catch (UnknownHostException e) {
