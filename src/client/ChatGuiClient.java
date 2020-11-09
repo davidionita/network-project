@@ -417,9 +417,10 @@ public class ChatGuiClient extends Application {
                     } else if(input instanceof ServerUsernameInvalidPacket) {
                         logger.log("Username already taken or invalid. Please enter another username.", LogType.ERROR);
                         Platform.runLater(() -> {
+                            textInput.setEditable(true);
                             messageArea.appendText("Username already taken or invalid. Please enter another username.\n");
                             if(!isConnected) {
-                                messageArea.appendText("This can be done via '/changeusername <username>'.");
+                                messageArea.appendText("This can be done via '/changeusername <username>'.\n");
                             }
                         });
                     } else if(input instanceof ServerUsernameValidPacket) {
